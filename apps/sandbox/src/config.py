@@ -5,7 +5,17 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-_REPO_ROOT = Path(__file__).resolve().parents[3]
+
+def _find_repo_root() -> Path:
+    """Find the checked-out repo root, falling back to the container workdir."""
+    current = Path(__file__).resolve()
+    for candidate in current.parents:
+        if (candidate / ".env").exists() or (candidate / "docker-compose.yml").exists():
+            return candidate
+    return Path.cwd()
+
+
+_REPO_ROOT = _find_repo_root()
 
 
 class Settings(BaseSettings):

@@ -12,6 +12,7 @@ import json
 
 import structlog
 
+from src.agent import dispatch_investigation
 from src.config import settings
 from src.db.pool import get_pool
 from src.triage.classify import classify_with_llm
@@ -111,3 +112,6 @@ async def _process_one() -> None:
         scam_type=triage_result.get("scam_type"),
         confidence=triage_result.get("confidence"),
     )
+
+    if new_status == "investigating":
+        await dispatch_investigation(str(incident_id))

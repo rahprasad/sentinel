@@ -35,8 +35,11 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://sentinel:sentinel@db:5432/sentinel
+      AGENTFIELD_SERVER: http://control-plane:8080
+      AGENT_CALLBACK_URL: http://harness:8003
     depends_on:
       - db
+      - control-plane
     ports:
       - "8003:8003"
 

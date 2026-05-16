@@ -6,15 +6,17 @@ as scam or safe, extract tells, and determine scam type.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
-from typing import Optional
 
 import httpx
 import structlog
 
+from src.agent import app
 from src.config import settings
 from src.ioc.brands import check_brand_mismatch
+from src.triage.models import TriageResult
 
 logger = structlog.get_logger()
 
@@ -81,8 +83,9 @@ async def classify_with_llm(
             extra_context += f"- Domain mismatch: {tell['span']} — {tell['why']}\n"
         user_message += extra_context
 
-    # Call TokenRouter API
-    result = await _call_tokenrouter(user_message)
+    # Call TokenRouter through AgentField; fall back to direct HTTP if the
+    # control-plane/SDK path is unavailable during local demos.
+    result = await _call_agentfield(user_message)
 
     # Merge brand tells into the result tells if not already present
     if brand_tells and result.get("is_scam"):
@@ -101,8 +104,8 @@ async def classify_with_llm(
     return result
 
 
-async def _call_tokenrouter(user_message: str) -> dict:
-    """Make the actual API call to TokenRouter.
+async def _call_agentfield(user_message: str) -> dict:
+    """Classify via AgentField structured AI, with direct TokenRouter fallback.
 
     Returns parsed JSON from the model response.
     Falls back to a safe default on any error.
@@ -111,13 +114,44 @@ async def _call_tokenrouter(user_message: str) -> dict:
         logger.warning("triage.no_api_key — returning safe default")
         return _safe_default("No API key configured")
 
+    if not settings.TRIAGE_AGENTFIELD_AI_ENABLED:
+        return await _call_tokenrouter_direct(user_message)
+
+    try:
+        result = await asyncio.wait_for(
+            app.ai(
+                system="You are a scam triage classifier. Output JSON only.",
+                user=user_message,
+                schema=TriageResult,
+                temperature=0.1,
+            ),
+            timeout=35.0,
+        )
+        logger.info(
+            "triage.agentfield_classified",
+            is_scam=result.is_scam,
+            confidence=result.confidence,
+        )
+        return result.model_dump()
+    except Exception as exc:
+        logger.warning("triage.agentfield_error", error=str(exc))
+        return await _call_tokenrouter_direct(user_message)
+
+
+async def _call_tokenrouter_direct(user_message: str) -> dict:
+    """Fallback direct OpenAI-compatible TokenRouter call."""
+
     url = f"{settings.TOKENROUTER_BASE_URL.rstrip('/')}/chat/completions"
     headers = {
         "Authorization": f"Bearer {settings.TOKENROUTER_API_KEY}",
         "Content-Type": "application/json",
     }
+    model = settings.TRIAGE_MODEL
+    if model.startswith("openai/"):
+        model = model.removeprefix("openai/")
+
     payload = {
-        "model": settings.TRIAGE_MODEL,
+        "model": model,
         "messages": [
             {"role": "system", "content": "You are a scam triage classifier. Output JSON only."},
             {"role": "user", "content": user_message},
@@ -145,7 +179,11 @@ async def _call_tokenrouter(user_message: str) -> dict:
             content = "\n".join(lines)
 
         result = json.loads(content)
-        logger.info("triage.llm_classified", is_scam=result.get("is_scam"), confidence=result.get("confidence"))
+        logger.info(
+            "triage.direct_llm_classified",
+            is_scam=result.get("is_scam"),
+            confidence=result.get("confidence"),
+        )
         return result
 
     except (httpx.HTTPError, json.JSONDecodeError, KeyError, IndexError) as exc:

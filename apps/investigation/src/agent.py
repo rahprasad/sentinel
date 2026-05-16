@@ -16,6 +16,8 @@ from typing import AsyncIterator
 
 import structlog
 from agentfield import Agent, AIConfig
+from agentfield.connection_manager import ConnectionConfig, ConnectionManager
+from agentfield.types import AgentStatus
 
 from . import db
 from .config import settings
@@ -32,9 +34,41 @@ logging.basicConfig(level=settings.log_level.upper())
 log = structlog.get_logger("investigation.agent")
 
 
+async def start_agentfield_registration(port: int) -> None:
+    """Register this uvicorn-hosted Agent with the AgentField control plane."""
+    if app.connection_manager is not None:
+        return
+
+    app.base_url = settings.agent_callback_url or f"http://localhost:{port}"
+    app._current_status = AgentStatus.READY
+    app.connection_manager = ConnectionManager(
+        app,
+        ConnectionConfig(
+            retry_interval=10.0,
+            health_check_interval=30.0,
+            connection_timeout=10.0,
+        ),
+    )
+    connected = await app.connection_manager.start()
+    log.info(
+        "agentfield_registration_started",
+        node=settings.node_id,
+        connected=connected,
+        base_url=app.base_url,
+    )
+
+
+async def stop_agentfield_registration() -> None:
+    """Stop AgentField registration/heartbeat background tasks."""
+    if app.connection_manager is not None:
+        await app.connection_manager.stop()
+        app.connection_manager = None
+
+
 # ─── lifespan: DB pool + polling worker ─────────────────────────────────────
 @asynccontextmanager
 async def lifespan(_app: "Agent") -> AsyncIterator[None]:
+    await start_agentfield_registration(8002)
     await db.connect()
     # Lazy import to dodge a circular: orchestrator → agent → lifespan → orchestrator.
     from .orchestrator import worker_loop
@@ -55,6 +89,7 @@ async def lifespan(_app: "Agent") -> AsyncIterator[None]:
             await task
         except asyncio.CancelledError:
             pass
+        await stop_agentfield_registration()
         await db.disconnect()
 
 

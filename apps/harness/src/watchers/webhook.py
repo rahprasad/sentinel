@@ -33,9 +33,9 @@ def _verify_key(api_key: str | None) -> None:
         raise HTTPException(status_code=401, detail="Invalid API key")
 
 
-def create_webhook_app() -> FastAPI:
-    """Build and return the FastAPI application."""
-    app = FastAPI(title="Sentinel Harness — Webhook Receiver")
+def create_webhook_app(app: FastAPI | None = None) -> FastAPI:
+    """Attach webhook routes to the provided app, or create a standalone app."""
+    app = app or FastAPI(title="Sentinel Harness — Webhook Receiver")
 
     @app.post("/ingest")
     async def ingest(

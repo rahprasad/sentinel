@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     TOKENROUTER_BASE_URL: str = "https://api.tokenrouter.com/v1"
     TRIAGE_MODEL: str = "openai/qwen/qwen3.5-flash"
     TRIAGE_AGENTFIELD_AI_ENABLED: bool = False
+    TRIAGE_AGENTFIELD_TIMEOUT_SECONDS: float = 35.0
     TRIAGE_CONFIDENCE_THRESHOLD: float = 0.6
 
     # AgentField
@@ -45,6 +46,10 @@ class Settings(BaseSettings):
     HARNESS_WEBHOOK_PORT: int = 8003
     TRIAGE_POLL_INTERVAL: float = 1.0
     HEARTBEAT_INTERVAL: float = 10.0
+    IMAP_IDLE_TIMEOUT_SECONDS: int = 300
+    IMAP_SWEEP_LOOKBACK_HOURS: int = 24
+    IMAP_SWEEP_UNSEEN_ONLY: bool = True
+    IMAP_STARTUP_SWEEP_ENABLED: bool = False
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

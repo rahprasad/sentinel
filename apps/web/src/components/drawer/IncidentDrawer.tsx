@@ -41,7 +41,7 @@ export function IncidentDrawer({ incidentId, onClose }: IncidentDrawerProps) {
   return (
     <div
       className={[
-        "fixed inset-0 z-50 transition-opacity duration-200",
+        "fixed inset-0 z-50 overflow-hidden transition-opacity duration-200",
         open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
       ].join(" ")}
       aria-hidden={!open}

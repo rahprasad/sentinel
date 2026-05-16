@@ -61,7 +61,7 @@ export default function IncidentRow({
     <button
       type="button"
       onClick={() => onClick?.(incident.id)}
-      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 transition-colors text-left animate-slide-in"
+      className="w-full min-w-0 flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 transition-colors text-left animate-slide-in"
     >
       <span className="text-xl flex-shrink-0">{icon}</span>
       <div className="flex-1 min-w-0">

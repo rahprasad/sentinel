@@ -1,8 +1,4 @@
-import MonitoringStatus from "@/components/dashboard/MonitoringStatus";
-import HeroStats from "@/components/dashboard/HeroStats";
-import IncidentFeed from "@/components/dashboard/IncidentFeed";
-import TrendingStrip from "@/components/dashboard/TrendingStrip";
-import ScreenshotDropZone from "@/components/dashboard/ScreenshotDropZone";
+import DashboardClient from "./DashboardClient";
 
 export default function Home() {
   return (
@@ -24,23 +20,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="max-w-5xl mx-auto px-6 py-6 space-y-6">
-        {/* Row 1: Monitoring + Screenshot drop zone */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-4">
-          <MonitoringStatus />
-          <ScreenshotDropZone />
-        </div>
-
-        {/* Row 2: Hero stats */}
-        <HeroStats />
-
-        {/* Row 3: Incident feed + Trending */}
-        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4">
-          <IncidentFeed />
-          <TrendingStrip />
-        </div>
-      </main>
+      <DashboardClient />
 
       {/* Footer */}
       <footer className="border-t border-[var(--card-border)] px-6 py-4 mt-8">

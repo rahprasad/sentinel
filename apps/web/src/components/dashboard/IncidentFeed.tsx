@@ -16,7 +16,7 @@ export default function IncidentFeed({
   const incidents: Incident[] = data?.incidents ?? [];
 
   return (
-    <div className="rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5">
+    <div className="min-w-0 rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5">
       <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
         Recent Activity
       </h2>

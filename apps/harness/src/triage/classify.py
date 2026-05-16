@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 from pathlib import Path
 
 import httpx
@@ -117,6 +118,14 @@ async def _call_agentfield(user_message: str) -> dict:
     if not settings.TRIAGE_AGENTFIELD_AI_ENABLED:
         return await _call_tokenrouter_direct(user_message)
 
+    started = time.perf_counter()
+    timeout = settings.TRIAGE_AGENTFIELD_TIMEOUT_SECONDS
+    logger.info(
+        "triage.agentfield_start",
+        model=settings.TRIAGE_MODEL,
+        timeout_seconds=timeout,
+        schema="TriageResult",
+    )
     try:
         result = await asyncio.wait_for(
             app.ai(
@@ -125,16 +134,30 @@ async def _call_agentfield(user_message: str) -> dict:
                 schema=TriageResult,
                 temperature=0.1,
             ),
-            timeout=35.0,
+            timeout=timeout,
         )
         logger.info(
             "triage.agentfield_classified",
             is_scam=result.is_scam,
             confidence=result.confidence,
+            elapsed_ms=round((time.perf_counter() - started) * 1000),
         )
         return result.model_dump()
+    except asyncio.TimeoutError:
+        logger.warning(
+            "triage.agentfield_timeout",
+            timeout_seconds=timeout,
+            elapsed_ms=round((time.perf_counter() - started) * 1000),
+            fallback="tokenrouter_direct",
+        )
+        return await _call_tokenrouter_direct(user_message)
     except Exception as exc:
-        logger.warning("triage.agentfield_error", error=str(exc))
+        logger.warning(
+            "triage.agentfield_error",
+            error=str(exc),
+            elapsed_ms=round((time.perf_counter() - started) * 1000),
+            fallback="tokenrouter_direct",
+        )
         return await _call_tokenrouter_direct(user_message)
 
 

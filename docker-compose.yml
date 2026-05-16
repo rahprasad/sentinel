@@ -73,9 +73,11 @@ services:
       DATABASE_URL: postgresql://sentinel:sentinel@db:5432/sentinel
       AGENTFIELD_SERVER: http://control-plane:8080
       AGENT_CALLBACK_URL: http://investigation:8002
+      SANDBOX_URL: http://sandbox:8001
     depends_on:
       - db
       - control-plane
+      - sandbox
     ports:
       - "8002:8002"
 

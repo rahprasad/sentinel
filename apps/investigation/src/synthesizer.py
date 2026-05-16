@@ -10,8 +10,10 @@ headline "saved you $X" can never hallucinate.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import re
+import time
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse
@@ -66,15 +68,46 @@ async def synthesize(
     if not settings.synthesizer_agentfield_ai_enabled:
         return _fallback_card(body=body, triage=triage, domain_intel=domain_intel, walker=walker)
 
+    started = time.perf_counter()
+    log.info(
+        "synth_agentfield_start",
+        incident_id=incident_id,
+        model=settings.synthesizer_model,
+        timeout_seconds=settings.synthesizer_timeout_seconds,
+        schema="CardContract",
+    )
     try:
-        raw = await app.ai(
-            system=system,
-            user=user,
-            schema=CardContract,
-            temperature=settings.synthesizer_temperature,
+        raw = await asyncio.wait_for(
+            app.ai(
+                system=system,
+                user=user,
+                schema=CardContract,
+                temperature=settings.synthesizer_temperature,
+            ),
+            timeout=settings.synthesizer_timeout_seconds,
         )
+        log.info(
+            "synth_agentfield_done",
+            incident_id=incident_id,
+            elapsed_ms=round((time.perf_counter() - started) * 1000),
+        )
+    except asyncio.TimeoutError:
+        log.warning(
+            "synth_llm_timeout",
+            incident_id=incident_id,
+            timeout_seconds=settings.synthesizer_timeout_seconds,
+            elapsed_ms=round((time.perf_counter() - started) * 1000),
+            fallback="deterministic_card",
+        )
+        return _fallback_card(body=body, triage=triage, domain_intel=domain_intel, walker=walker)
     except Exception as exc:
-        log.warning("synth_llm_failed", incident_id=incident_id, error=str(exc))
+        log.warning(
+            "synth_llm_failed",
+            incident_id=incident_id,
+            error=str(exc),
+            elapsed_ms=round((time.perf_counter() - started) * 1000),
+            fallback="deterministic_card",
+        )
         return _fallback_card(body=body, triage=triage, domain_intel=domain_intel, walker=walker)
 
     return _repair_card(raw, body=body, domain_intel=domain_intel, walker=walker)

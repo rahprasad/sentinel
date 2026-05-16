@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import signal
+import sys
 
 import structlog
 import uvicorn
@@ -75,6 +76,19 @@ def main() -> None:
     structlog.configure(
         wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
     )
+    if len(sys.argv) > 1 and sys.argv[1] in {"sweep", "sweep-last-day"}:
+        logger.info("harness.sweep_starting")
+        loop = asyncio.new_event_loop()
+        try:
+            from src.watchers.imap import sweep_last_day
+
+            inserted = loop.run_until_complete(sweep_last_day())
+            logger.info("harness.sweep_done", inserted=inserted)
+        finally:
+            loop.run_until_complete(close_pool())
+            loop.close()
+        return
+
     logger.info("harness.starting")
 
     loop = asyncio.new_event_loop()

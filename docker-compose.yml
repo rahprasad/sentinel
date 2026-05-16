@@ -17,7 +17,8 @@ services:
       - "5432:5432"
     volumes:
       - sentinel_pg:/var/lib/postgresql/data
-      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+      - ./db/migrations:/docker-entrypoint-initdb.d/1-migrations:ro
+      - ./db/seeds:/docker-entrypoint-initdb.d/2-seeds:ro
 
   harness:
     build: ./apps/harness

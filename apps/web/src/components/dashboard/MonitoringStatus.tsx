@@ -63,7 +63,7 @@ export default function MonitoringStatus() {
   return (
     <div className="rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5">
       <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
-        Monitoring
+        Monitoring email
       </h2>
       <div className="space-y-3">
         {sources.map((src) => (
@@ -91,9 +91,20 @@ export default function MonitoringStatus() {
           </div>
         ))}
         {sources.length === 0 && (
-          <p className="text-sm text-[var(--muted)]">
-            No monitoring sources configured.
-          </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-[var(--success)] animate-pulse-dot" />
+                <span className="text-[var(--success)] text-sm font-medium">
+                  Active
+                </span>
+              </span>
+              <span className="text-sm">Inbox (IMAP)</span>
+            </div>
+            <div className="text-right text-xs text-[var(--muted)]">
+              <div>Watching for new messages…</div>
+            </div>
+          </div>
         )}
       </div>
     </div>

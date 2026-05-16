@@ -161,3 +161,33 @@ async def push_agent_event(event: _PushedEvent) -> dict:
         **(event.details or {}),
     )
     return {"ok": True}
+
+
+# ─── Dashboard data endpoints ──────────────────────────────────────────────
+# Surface incidents / stats / monitoring directly from this service so the
+# Next.js dashboard works without a separate api deploy. Same shape as the
+# apps/api routes so the frontend doesn't need to know which service answered.
+
+@app.get("/incidents", tags=["sentinel"])
+async def list_incidents(limit: int = 50, offset: int = 0) -> dict:
+    rows = await db.list_incidents(limit=limit, offset=offset)
+    return {"incidents": rows, "count": len(rows)}
+
+
+@app.get("/incidents/{incident_id}", tags=["sentinel"])
+async def get_incident(incident_id: str) -> dict:
+    from fastapi import HTTPException
+    row = await db.get_incident(incident_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    return row
+
+
+@app.get("/stats", tags=["sentinel"])
+async def get_stats() -> dict:
+    return await db.get_dashboard_stats()
+
+
+@app.get("/monitoring", tags=["sentinel"])
+async def get_monitoring() -> dict:
+    return {"sources": await db.get_monitoring_sources()}

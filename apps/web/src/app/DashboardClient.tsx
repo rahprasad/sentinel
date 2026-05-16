@@ -5,7 +5,6 @@ import MonitoringStatus from "@/components/dashboard/MonitoringStatus";
 import HeroStats from "@/components/dashboard/HeroStats";
 import IncidentFeed from "@/components/dashboard/IncidentFeed";
 import TrendingStrip from "@/components/dashboard/TrendingStrip";
-import ScreenshotDropZone from "@/components/dashboard/ScreenshotDropZone";
 import AgentActivityPanel from "@/components/dashboard/AgentActivityPanel";
 import { IncidentDrawer } from "@/components/drawer";
 
@@ -15,14 +14,7 @@ export default function DashboardClient() {
   return (
     <>
       <main className="max-w-5xl mx-auto px-6 py-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4">
-          <div className="min-w-0">
-            <MonitoringStatus />
-          </div>
-          <div className="min-w-0">
-            <ScreenshotDropZone />
-          </div>
-        </div>
+        <MonitoringStatus />
 
         <HeroStats />
 

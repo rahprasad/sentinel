@@ -100,6 +100,90 @@ async def mark_failed(incident_id: str, error: str) -> None:
         )
 
 
+async def list_incidents(limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
+    pool = await connect()
+    rows = await pool.fetch(
+        """
+        SELECT id, received_at, source, sender, subject, body,
+               iocs, triage, status, investigation,
+               screenshots, estimated_loss_usd
+          FROM incidents
+         ORDER BY received_at DESC
+         LIMIT $1 OFFSET $2
+        """,
+        limit,
+        offset,
+    )
+    return [_row_to_dict(r) for r in rows]
+
+
+async def get_incident(incident_id: str) -> Optional[dict[str, Any]]:
+    pool = await connect()
+    row = await pool.fetchrow(
+        """
+        SELECT id, received_at, source, sender, subject, body,
+               iocs, triage, status, investigation,
+               screenshots, estimated_loss_usd
+          FROM incidents
+         WHERE id = $1::uuid
+        """,
+        incident_id,
+    )
+    return _row_to_dict(row) if row else None
+
+
+async def get_dashboard_stats() -> dict[str, int]:
+    pool = await connect()
+    scanned = await pool.fetchval(
+        "SELECT COALESCE(sum(items_scanned_total), 0) FROM harness_status"
+    )
+    blocked = await pool.fetchval(
+        "SELECT count(*) FROM incidents WHERE status IN ('investigating', 'done')"
+    )
+    return {"blocked_count": blocked or 0, "scanned_today": scanned or 0}
+
+
+async def get_monitoring_sources() -> list[dict[str, Any]]:
+    pool = await connect()
+    rows = await pool.fetch(
+        """
+        SELECT source, last_check, state, items_scanned_total, error_message
+          FROM harness_status
+         ORDER BY source
+        """
+    )
+    return [
+        {
+            "source": r["source"],
+            "last_check": r["last_check"].isoformat() if r["last_check"] else None,
+            "state": r["state"],
+            "items_scanned_total": r["items_scanned_total"],
+            "error_message": r["error_message"],
+        }
+        for r in rows
+    ]
+
+
+def _row_to_dict(row) -> dict[str, Any]:
+    if row is None:
+        return {}
+    d = dict(row)
+    if "id" in d:
+        d["id"] = str(d["id"])
+    if "received_at" in d and d["received_at"]:
+        d["received_at"] = d["received_at"].isoformat()
+    for key in ("iocs", "triage", "investigation"):
+        val = d.get(key)
+        if isinstance(val, str):
+            try:
+                d[key] = json.loads(val)
+            except (json.JSONDecodeError, TypeError):
+                pass
+    if "screenshots" in d and d["screenshots"] is None:
+        d["screenshots"] = []
+    return d
+
+
 async def upsert_seen_iocs(iocs: list[tuple[str, str, Optional[str]]]) -> None:
     """Write back discovered IOCs so triage hits the cache next time.
 

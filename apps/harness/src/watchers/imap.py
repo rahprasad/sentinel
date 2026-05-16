@@ -29,6 +29,7 @@ from tenacity import (
 from src.config import settings
 from src.db.pool import get_pool
 from src.normalize.envelope import normalize_envelope
+from src.observability import activity as obs
 
 logger = structlog.get_logger()
 
@@ -288,6 +289,12 @@ async def _insert_incident(envelope: dict) -> bool:
     logger.info(
         "imap.incident_inserted",
         imap_uid=envelope.get("imap_uid"),
+        sender=envelope["sender"][:40],
+        subject=envelope["subject"][:60],
+    )
+    await obs.emit(
+        "imap-watcher",
+        "incident_ingested",
         sender=envelope["sender"][:40],
         subject=envelope["subject"][:60],
     )

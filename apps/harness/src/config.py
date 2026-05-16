@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     # Inter-service
     API_URL: str = "http://localhost:8000"
     INTERNAL_API_KEY: str = ""
+    INVESTIGATION_URL: str = "http://localhost:8002"
 
     # Harness tuning
     HARNESS_WEBHOOK_PORT: int = 8003

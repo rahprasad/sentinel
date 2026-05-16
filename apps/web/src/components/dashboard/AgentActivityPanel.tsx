@@ -10,8 +10,9 @@ import {
 const POLL_MS = 1500;
 
 const AGENT_COLORS: Record<string, string> = {
-  orchestrator: "bg-slate-700/60 text-slate-200 border-slate-600/60",
+  "imap-watcher": "bg-cyan-900/60 text-cyan-200 border-cyan-700/60",
   triage: "bg-sky-900/60 text-sky-200 border-sky-700/60",
+  orchestrator: "bg-slate-700/60 text-slate-200 border-slate-600/60",
   "domain-intel": "bg-violet-900/60 text-violet-200 border-violet-700/60",
   "sandbox-walker": "bg-emerald-900/60 text-emerald-200 border-emerald-700/60",
   synthesizer: "bg-amber-900/60 text-amber-200 border-amber-700/60",
@@ -23,6 +24,8 @@ const EVENT_DOT: Record<string, string> = {
   failed: "bg-rose-500",
   fixture_used: "bg-amber-400",
   synthesizer_fallback: "bg-amber-400",
+  incident_ingested: "bg-cyan-400 animate-pulse",
+  ioc_cache_hit: "bg-emerald-300",
 };
 
 export default function AgentActivityPanel() {

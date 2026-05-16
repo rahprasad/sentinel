@@ -19,6 +19,7 @@ from agentfield import Agent, AIConfig
 from agentfield.connection_manager import ConnectionConfig, ConnectionManager
 from agentfield.types import AgentStatus
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from . import activity, db
 from .config import settings
@@ -135,3 +136,28 @@ async def get_agent_activity(limit: int = 50) -> dict:
     show, surfaced directly so we don't depend on the CP being deployed.
     """
     return activity.snapshot(limit=limit)
+
+
+class _PushedEvent(BaseModel):
+    agent: str = Field(..., min_length=1, max_length=64)
+    event: str = Field(..., min_length=1, max_length=64)
+    incident_id: str | None = None
+    duration_ms: int | None = None
+    details: dict | None = None
+
+
+@app.post("/agent-activity/event", tags=["sentinel"])
+async def push_agent_event(event: _PushedEvent) -> dict:
+    """Allow sibling services (harness, etc.) to push agent events.
+
+    Lets the harness's triage agent appear on the same dashboard as the
+    investigation agents — single pane of glass for the whole pipeline.
+    """
+    await activity.record(
+        agent=event.agent,
+        event=event.event,
+        incident_id=event.incident_id,
+        duration_ms=event.duration_ms,
+        **(event.details or {}),
+    )
+    return {"ok": True}

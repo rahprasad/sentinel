@@ -15,6 +15,7 @@ import structlog
 from src.agent import dispatch_investigation
 from src.config import settings
 from src.db.pool import get_pool
+from src.observability import activity as obs
 from src.triage.classify import classify_with_llm
 from src.triage.ioc_cache import check_ioc_cache
 
@@ -74,17 +75,23 @@ async def _process_one() -> None:
         subject=subject[:60],
     )
 
-    # Step 1: Fast IOC cache check
-    cache_result = await check_ioc_cache(iocs)
+    async with obs.track("triage", incident_id=str(incident_id), subject=subject[:60]):
+        # Step 1: Fast IOC cache check
+        cache_result = await check_ioc_cache(iocs)
 
-    if cache_result is not None:
-        triage_result = cache_result
-        logger.info("triage_worker.cache_hit", incident_id=str(incident_id))
-    else:
-        # Step 2: LLM classification
-        urls = iocs.get("urls", [])
-        triage_result = await classify_with_llm(sender, subject, body, urls, iocs)
-        logger.info("triage_worker.llm_done", incident_id=str(incident_id))
+        if cache_result is not None:
+            triage_result = cache_result
+            logger.info("triage_worker.cache_hit", incident_id=str(incident_id))
+            await obs.emit(
+                "triage",
+                "ioc_cache_hit",
+                incident_id=str(incident_id),
+            )
+        else:
+            # Step 2: LLM classification
+            urls = iocs.get("urls", [])
+            triage_result = await classify_with_llm(sender, subject, body, urls, iocs)
+            logger.info("triage_worker.llm_done", incident_id=str(incident_id))
 
     # Determine new status
     is_scam = triage_result.get("is_scam", False)

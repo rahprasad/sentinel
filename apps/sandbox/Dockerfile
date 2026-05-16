@@ -1,5 +1,5 @@
 # Playwright + Chromium baked in. Ephemeral container, no creds, no volumes.
-FROM mcr.microsoft.com/playwright/python:v1.49.0-noble
+FROM mcr.microsoft.com/playwright/python:v1.59.0-noble
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

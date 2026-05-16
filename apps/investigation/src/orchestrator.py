@@ -8,11 +8,12 @@ up rows nobody pushed at us.
 from __future__ import annotations
 
 import asyncio
+import time
 from typing import Any, Optional
 
 import structlog
 
-from . import db, fixtures
+from . import activity, db, fixtures
 from .agent import app
 from .config import settings
 from .domain_intel import investigate_domain
@@ -50,15 +51,37 @@ async def _investigate_row(row: dict[str, Any]) -> CardContract:
         scam_type=triage.scam_type,
         fixture_mode=settings.fixture_mode,
     )
+    started = time.monotonic()
+    await activity.record(
+        "orchestrator", "started",
+        incident_id=incident_id, scam_type=triage.scam_type, url=target_url,
+    )
 
     walker, domain = await _gather_evidence(target_url, incident_id, triage)
 
-    card = await synthesize(
+    synth_started = time.monotonic()
+    await activity.record("synthesizer", "started", incident_id=incident_id)
+    try:
+        card = await synthesize(
+            incident_id=incident_id,
+            body=body,
+            triage=triage,
+            domain_intel=domain,
+            walker=walker,
+        )
+    except Exception as exc:
+        await activity.record(
+            "synthesizer", "failed",
+            incident_id=incident_id,
+            duration_ms=int((time.monotonic() - synth_started) * 1000),
+            error=str(exc),
+        )
+        raise
+    await activity.record(
+        "synthesizer", "completed",
         incident_id=incident_id,
-        body=body,
-        triage=triage,
-        domain_intel=domain,
-        walker=walker,
+        duration_ms=int((time.monotonic() - synth_started) * 1000),
+        scam_type=card.scam_type,
     )
 
     # Use triage's canonical scam_type for deterministic computations — the
@@ -77,6 +100,15 @@ async def _investigate_row(row: dict[str, Any]) -> CardContract:
         estimated_loss_usd=loss,
     )
     await db.upsert_seen_iocs(iocs)
+
+    await activity.record(
+        "orchestrator", "completed",
+        incident_id=incident_id,
+        duration_ms=int((time.monotonic() - started) * 1000),
+        estimated_loss=loss,
+        screenshots=len(screenshots),
+        funnel=card.evidence.funnel_terminus,
+    )
 
     log.info(
         "investigation_done",
@@ -127,6 +159,12 @@ async def _gather_evidence(
                 "walker_fixture_fallback",
                 scam_type=triage.scam_type,
                 error=walker_result.error,
+            )
+            await activity.record(
+                "sandbox-walker", "fixture_used",
+                incident_id=incident_id,
+                scam_type=triage.scam_type,
+                live_error=walker_result.error,
             )
             walker_result = fixture
 

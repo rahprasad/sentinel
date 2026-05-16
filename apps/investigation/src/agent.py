@@ -18,8 +18,9 @@ import structlog
 from agentfield import Agent, AIConfig
 from agentfield.connection_manager import ConnectionConfig, ConnectionManager
 from agentfield.types import AgentStatus
+from fastapi.middleware.cors import CORSMiddleware
 
-from . import db
+from . import activity, db
 from .config import settings
 
 # ─── structured logging ─────────────────────────────────────────────────────
@@ -112,3 +113,25 @@ app = Agent(
     ),
     lifespan=lifespan,
 )
+
+# ─── CORS for the web dashboard ─────────────────────────────────────────────
+# Person A's Next.js dashboard polls /agent-activity from the browser; allow
+# cross-origin reads. Wide-open in dev; tighten via env var in production.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+
+
+# ─── /agent-activity — live view of what each agent is doing ────────────────
+@app.get("/agent-activity", tags=["sentinel"])
+async def get_agent_activity(limit: int = 50) -> dict:
+    """Recent agent events, per-agent counters, and in-flight counts.
+
+    The web dashboard polls this every few seconds to render the live
+    "agents at work" panel. Same data the AgentField control plane would
+    show, surfaced directly so we don't depend on the CP being deployed.
+    """
+    return activity.snapshot(limit=limit)

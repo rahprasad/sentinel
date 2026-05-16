@@ -1,0 +1,4 @@
+{
+  "dockerfile": "apps/investigation/Dockerfile",
+  "build_context": "apps/investigation"
+}

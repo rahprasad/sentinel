@@ -1,0 +1,61 @@
+# Local dev orchestration. Mirrors the Zeabur topology:
+#   - 1 Postgres
+#   - 3 service containers (harness, api, sandbox, investigation)
+#   - 1 web (Next.js) — usually run on host with `pnpm dev` for HMR
+#
+# Each service reads from the root .env file.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: sentinel
+      POSTGRES_DB: sentinel
+    ports:
+      - "5432:5432"
+    volumes:
+      - sentinel_pg:/var/lib/postgresql/data
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+
+  harness:
+    build: ./apps/harness
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - db
+    ports:
+      - "8003:8003"
+
+  api:
+    build: ./apps/api
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+
+  sandbox:
+    build: ./apps/sandbox
+    restart: unless-stopped
+    env_file: .env
+    # Sandbox container is intentionally minimal:
+    # - no persistent volume
+    # - no DB mount
+    # - egress-only network
+    ports:
+      - "8001:8001"
+
+  investigation:
+    build: ./apps/investigation
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - db
+    ports:
+      - "8002:8002"
+
+volumes:
+  sentinel_pg:

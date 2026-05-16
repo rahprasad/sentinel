@@ -1,0 +1,10 @@
+# Sandbox: isolated Playwright container that walks scam links
+# Base image already ships Chromium + Playwright; only app-level deps here.
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+playwright>=1.49.0
+pydantic>=2.9.0
+pydantic-settings>=2.6.0
+httpx>=0.27.0
+boto3>=1.35.0
+structlog>=24.4.0

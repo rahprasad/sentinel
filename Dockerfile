@@ -17,6 +17,7 @@ RUN pip install -r requirements.txt
 COPY apps/investigation/src ./src
 COPY apps/investigation/prompts ./prompts
 
-EXPOSE 8002
+EXPOSE 8080
 
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8002"]
+# Zeabur sets $PORT to the public-facing port; default to 8080 locally.
+CMD uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8080}

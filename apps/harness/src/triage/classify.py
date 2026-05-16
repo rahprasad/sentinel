@@ -66,11 +66,12 @@ async def classify_with_llm(
 
     # Build the user message
     template = _load_prompt_template()
-    user_message = template.format(
-        sender=sender,
-        subject=subject,
-        body=body[:2000],  # Truncate very long bodies
-        urls=", ".join(urls) if urls else "none",
+    user_message = (
+        template
+        .replace("{sender}", sender)
+        .replace("{subject}", subject)
+        .replace("{body}", body[:2000])  # Truncate very long bodies
+        .replace("{urls}", ", ".join(urls) if urls else "none")
     )
 
     # If we have brand mismatch tells, append them as context

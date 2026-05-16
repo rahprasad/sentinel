@@ -25,8 +25,8 @@ class Settings(BaseSettings):
 
     # TokenRouter / LLM
     TOKENROUTER_API_KEY: str = ""
-    TOKENROUTER_BASE_URL: str = "https://api.tokenrouter.io/v1"
-    TRIAGE_MODEL: str = "qwen-flash"
+    TOKENROUTER_BASE_URL: str = "https://api.tokenrouter.com/v1"
+    TRIAGE_MODEL: str = "qwen/qwen3.5-flash"
     TRIAGE_CONFIDENCE_THRESHOLD: float = 0.6
 
     # Inter-service

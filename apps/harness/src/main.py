@@ -12,7 +12,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import signal
-import threading
 
 import structlog
 import uvicorn
@@ -41,8 +40,7 @@ async def run_harness() -> None:
 
     await _init_db()
 
-    # Start the webhook FastAPI in a background thread so it doesn't block
-    # the asyncio event loop.
+    # Start the webhook FastAPI on the same event loop as the DB pool.
     webhook_app = create_webhook_app()
     config = uvicorn.Config(
         webhook_app,
@@ -51,12 +49,12 @@ async def run_harness() -> None:
         log_level="warning",
     )
     server = uvicorn.Server(config)
-    webhook_thread = threading.Thread(target=server.run, daemon=True)
-    webhook_thread.start()
+    webhook_task = asyncio.create_task(server.serve())
     logger.info("webhook.listening", port=settings.HARNESS_WEBHOOK_PORT)
 
     # Run the long-lived coroutines concurrently
     await asyncio.gather(
+        webhook_task,
         imap_watcher(),
         triage_worker(),
         heartbeat_loop(),

@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import email as email_lib
 import email.policy
+import json
 import re
 from email.header import decode_header
 from typing import Optional
@@ -144,8 +145,7 @@ async def _insert_incident(envelope: dict) -> None:
             envelope["sender"],
             envelope["subject"],
             envelope["body"],
-            # asyncpg handles dict -> jsonb automatically
-            envelope["iocs"],
+            json.dumps(envelope["iocs"]),
         )
         # Bump scanned counter for email_imap
         await conn.execute(
@@ -205,10 +205,9 @@ async def imap_watcher() -> None:
 
             while True:
                 # Enter IDLE and wait for EXISTS (new message)
-                idle_result = await client.idle_start(timeout=300)
-                # idle_start returns; we check for new messages
-                # by examining the responses
-                responses = client.get_server_responses()
+                await client.idle_start(timeout=300)
+                response = await client.wait_server_push(timeout=300)
+                responses = response.lines
                 exists_found = any(
                     b"EXISTS" in r if isinstance(r, bytes) else "EXISTS" in r
                     for r in responses
@@ -226,7 +225,7 @@ async def imap_watcher() -> None:
                                 await _insert_incident(envelope)
 
                 # Done with IDLE
-                await client.idle_done()
+                client.idle_done()
 
         except asyncio.CancelledError:
             logger.info("imap.cancelled")

@@ -6,6 +6,8 @@ IMAP isn't available.  Also used for the screenshot stretch.
 
 from __future__ import annotations
 
+import json
+
 import structlog
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
@@ -54,7 +56,7 @@ def create_webhook_app() -> FastAPI:
                 envelope["sender"],
                 envelope["subject"],
                 envelope["body"],
-                envelope["iocs"],
+                json.dumps(envelope["iocs"]),
             )
             # Bump scanned counter for this source
             await conn.execute(

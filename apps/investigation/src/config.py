@@ -10,7 +10,17 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-_REPO_ROOT = Path(__file__).resolve().parents[3]
+
+def _find_repo_root() -> Path:
+    """Find the checked-out repo root, falling back to the container workdir."""
+    current = Path(__file__).resolve()
+    for candidate in current.parents:
+        if (candidate / ".env").exists() or (candidate / "docker-compose.yml").exists():
+            return candidate
+    return Path.cwd()
+
+
+_REPO_ROOT = _find_repo_root()
 
 
 class Settings(BaseSettings):
@@ -46,7 +56,12 @@ class Settings(BaseSettings):
     # LiteLLM format: "openai/<id>" strips the prefix and forwards <id> as
     # the model string to the configured api_base. TokenRouter exposes GLM-4.6
     # as "z-ai/glm-4.6", so the full LiteLLM model is "openai/z-ai/glm-4.6".
+    # (Probe `GET /v1/models` against TokenRouter for the full inventory.)
     synthesizer_model: str = "openai/z-ai/glm-4.6"
+    # Kill switch for the LLM call. Defaults True so cards are real; flip
+    # to False via SYNTHESIZER_AGENTFIELD_AI_ENABLED=false when iterating
+    # locally and you want the deterministic fallback (no API spend).
+    synthesizer_agentfield_ai_enabled: bool = True
     synthesizer_temperature: float = 0.2
     synthesizer_timeout_seconds: int = 120
 

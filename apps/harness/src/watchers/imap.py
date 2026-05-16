@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import email as email_lib
 import email.policy
+import json
 import re
 from email.header import decode_header
 from typing import Optional
@@ -97,24 +98,52 @@ def _get_text_body(msg: email_lib.message.Message) -> str:
 
 
 async def _fetch_and_process(
-    client: aioimaplib.IMAP4_SSL, uid: str
+    client: aioimaplib.IMAP4_SSL, message_num: str
 ) -> Optional[dict]:
-    """Fetch a single message by UID and return a normalized envelope dict."""
-    _, response = await client.uid("fetch", uid, "(RFC822)")
-    # aioimaplib returns lines; find the RFC822 payload
-    raw_email: Optional[bytes] = None
-    for i, line in enumerate(response):
-        if isinstance(line, bytes) and b"RFC822" not in line:
-            raw_email = line
-            break
-        if isinstance(line, str) and "RFC822" in line:
-            # The next item might be the bytes body
-            if i + 1 < len(response) and isinstance(response[i + 1], bytes):
-                raw_email = response[i + 1]
-                break
+    """Fetch a single message and return a normalized envelope dict."""
+    _, response = await client.fetch(message_num, "(RFC822)")
+    # aioimaplib returns protocol metadata and payload chunks in the same list.
+    # Pick the RFC822 payload, avoiding small terminators like b")".
+    lines = response.lines if hasattr(response, "lines") else response
+    if not isinstance(lines, (list, tuple)):
+        lines = [lines]
+
+    payload_lines = [bytes(line) for line in lines if isinstance(line, (bytes, bytearray))]
+    candidates = [
+        line
+        for line in payload_lines
+        if len(line) > 20
+        and line.strip() != b")"
+        and not re.match(rb"^\d+\s+FETCH\s+", line)
+        and not line.startswith(b" FLAGS ")
+        and line != b"Success"
+        and (
+            b"\r\n\r\n" in line
+            or b"\n\n" in line
+            or b"Subject:" in line
+            or b"From:" in line
+        )
+    ]
+    raw_email: Optional[bytes] = max(candidates, key=len) if candidates else None
+
+    # Some servers split the literal into bytearray chunks, while others keep
+    # metadata and payload together. The fallback keeps that second shape alive.
+    if raw_email is None:
+        candidates = [
+            line
+            for line in payload_lines
+            if len(line) > 20
+            and (
+                b"\r\n\r\n" in line
+                or b"\n\n" in line
+                or b"Subject:" in line
+                or b"From:" in line
+            )
+        ]
+        raw_email = max(candidates, key=len) if candidates else None
 
     if raw_email is None:
-        logger.warning("imap.fetch_failed", uid=uid)
+        logger.warning("imap.fetch_failed", message_num=message_num)
         return None
 
     msg = email_lib.message_from_bytes(raw_email, policy=email.policy.default)
@@ -144,8 +173,7 @@ async def _insert_incident(envelope: dict) -> None:
             envelope["sender"],
             envelope["subject"],
             envelope["body"],
-            # asyncpg handles dict -> jsonb automatically
-            envelope["iocs"],
+            json.dumps(envelope["iocs"]),
         )
         # Bump scanned counter for email_imap
         await conn.execute(
@@ -205,28 +233,31 @@ async def imap_watcher() -> None:
 
             while True:
                 # Enter IDLE and wait for EXISTS (new message)
-                idle_result = await client.idle_start(timeout=300)
-                # idle_start returns; we check for new messages
-                # by examining the responses
-                responses = client.get_server_responses()
+                await client.idle_start(timeout=300)
+                response = await client.wait_server_push(timeout=300)
+                responses = response.lines if hasattr(response, "lines") else response
+                if not isinstance(responses, (list, tuple)):
+                    responses = [responses]
                 exists_found = any(
                     b"EXISTS" in r if isinstance(r, bytes) else "EXISTS" in r
                     for r in responses
                 )
 
                 if exists_found:
-                    # Fetch all UNSEEN messages
-                    _, data = await client.uid("search", "UNSEEN")
-                    if data and data[0]:
-                        uids = data[0].split()
-                        for uid in uids:
-                            uid_str = uid.decode() if isinstance(uid, bytes) else uid
-                            envelope = await _fetch_and_process(client, uid_str)
-                            if envelope:
-                                await _insert_incident(envelope)
+                    message_nums: list[str] = []
+                    for item in responses:
+                        text = item.decode() if isinstance(item, bytes) else str(item)
+                        match = re.search(r"(\d+)\s+EXISTS", text)
+                        if match:
+                            message_nums.append(match.group(1))
+
+                    for message_num in message_nums:
+                        envelope = await _fetch_and_process(client, message_num)
+                        if envelope:
+                            await _insert_incident(envelope)
 
                 # Done with IDLE
-                await client.idle_done()
+                client.idle_done()
 
         except asyncio.CancelledError:
             logger.info("imap.cancelled")

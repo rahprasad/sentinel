@@ -12,7 +12,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import signal
-import threading
 
 import structlog
 import uvicorn
@@ -34,16 +33,21 @@ async def _init_db() -> None:
 
 async def run_harness() -> None:
     """Main harness entrypoint."""
+    from src.agent import (
+        app as agent_app,
+        start_agentfield_registration,
+        stop_agentfield_registration,
+    )
     from src.triage.worker import triage_worker
     from src.watchers.heartbeat import heartbeat_loop
     from src.watchers.imap import imap_watcher
     from src.watchers.webhook import create_webhook_app
 
     await _init_db()
+    await start_agentfield_registration(settings.HARNESS_WEBHOOK_PORT)
 
-    # Start the webhook FastAPI in a background thread so it doesn't block
-    # the asyncio event loop.
-    webhook_app = create_webhook_app()
+    # Start the AgentField app and webhook routes on the same event loop.
+    webhook_app = create_webhook_app(agent_app)
     config = uvicorn.Config(
         webhook_app,
         host="0.0.0.0",
@@ -51,16 +55,19 @@ async def run_harness() -> None:
         log_level="warning",
     )
     server = uvicorn.Server(config)
-    webhook_thread = threading.Thread(target=server.run, daemon=True)
-    webhook_thread.start()
+    webhook_task = asyncio.create_task(server.serve())
     logger.info("webhook.listening", port=settings.HARNESS_WEBHOOK_PORT)
 
     # Run the long-lived coroutines concurrently
-    await asyncio.gather(
-        imap_watcher(),
-        triage_worker(),
-        heartbeat_loop(),
-    )
+    try:
+        await asyncio.gather(
+            webhook_task,
+            imap_watcher(),
+            triage_worker(),
+            heartbeat_loop(),
+        )
+    finally:
+        await stop_agentfield_registration()
 
 
 def main() -> None:

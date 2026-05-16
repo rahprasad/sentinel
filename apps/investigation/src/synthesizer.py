@@ -63,6 +63,9 @@ async def synthesize(
     system = _PROMPT_PATH.read_text()
     user = _build_user_message(body, triage, domain_intel, walker)
 
+    if not settings.synthesizer_agentfield_ai_enabled:
+        return _fallback_card(body=body, triage=triage, domain_intel=domain_intel, walker=walker)
+
     try:
         raw = await app.ai(
             system=system,

@@ -25,9 +25,17 @@ class Settings(BaseSettings):
 
     # TokenRouter / LLM
     TOKENROUTER_API_KEY: str = ""
-    TOKENROUTER_BASE_URL: str = "https://api.tokenrouter.io/v1"
-    TRIAGE_MODEL: str = "qwen-flash"
+    TOKENROUTER_BASE_URL: str = "https://api.tokenrouter.com/v1"
+    TRIAGE_MODEL: str = "openai/qwen/qwen3.5-flash"
+    TRIAGE_AGENTFIELD_AI_ENABLED: bool = False
     TRIAGE_CONFIDENCE_THRESHOLD: float = 0.6
+
+    # AgentField
+    AGENTFIELD_SERVER: str = "http://localhost:8080"
+    AGENT_CALLBACK_URL: str = ""
+    HARNESS_AGENT_NODE_ID: str = "sentinel-triage"
+    HARNESS_AGENT_VERSION: str = "0.1.0"
+    AGENTFIELD_HANDOFF_ENABLED: bool = True
 
     # Inter-service
     API_URL: str = "http://localhost:8000"

@@ -17,8 +17,9 @@ services:
       - "5432:5432"
     volumes:
       - sentinel_pg:/var/lib/postgresql/data
-      - ./db/migrations:/docker-entrypoint-initdb.d/1-migrations:ro
-      - ./db/seeds:/docker-entrypoint-initdb.d/2-seeds:ro
+      - ./db/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./db/seeds/001_seed_incidents.sql:/docker-entrypoint-initdb.d/101_seed_incidents.sql:ro
+      - ./db/seeds/002_seed_harness_status.sql:/docker-entrypoint-initdb.d/102_seed_harness_status.sql:ro
 
   control-plane:
     # AgentField FOSS control plane — registry, observability dashboard,
@@ -32,8 +33,13 @@ services:
     build: ./apps/harness
     restart: unless-stopped
     env_file: .env
+    environment:
+      DATABASE_URL: postgresql://sentinel:sentinel@db:5432/sentinel
+      AGENTFIELD_SERVER: http://control-plane:8080
+      AGENT_CALLBACK_URL: http://harness:8003
     depends_on:
       - db
+      - control-plane
     ports:
       - "8003:8003"
 
@@ -41,6 +47,8 @@ services:
     build: ./apps/api
     restart: unless-stopped
     env_file: .env
+    environment:
+      DATABASE_URL: postgresql://sentinel:sentinel@db:5432/sentinel
     depends_on:
       - db
     ports:
@@ -62,6 +70,7 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
+      DATABASE_URL: postgresql://sentinel:sentinel@db:5432/sentinel
       AGENTFIELD_SERVER: http://control-plane:8080
       AGENT_CALLBACK_URL: http://investigation:8002
     depends_on:

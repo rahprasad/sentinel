@@ -93,10 +93,11 @@ blob-report/
 .docker/
 .zeabur/
 
-# ─── Local fixtures the harness/sandbox may dump ───────────────
-fixtures/walks/*.json
-fixtures/walks/*.png
-fixtures/incidents/*.json
+# ─── Locally-captured artifacts the harness/sandbox may dump ───
+# Stub demo fixtures (small JSON) are intentionally checked in.
+# Use the `.recorded.` infix for one-off live captures you don't want to commit.
+fixtures/**/*.recorded.json
+fixtures/**/*.recorded.png
 fixtures/screenshots/*.png
 fixtures/screenshots/*.jpg
 !fixtures/**/.gitkeep

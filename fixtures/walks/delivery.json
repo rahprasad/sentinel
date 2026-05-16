@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/60a5fa/png?text=Step+1+%E2%80%94+Shipment+held+at+customs",
+      "url": "https://customs-clearance-pay.com/release",
+      "form_fields": [],
+      "page_text": "Shipment FX72918 held at customs. Outstanding duties $4.99. Pay within 24 hours to avoid return-to-sender."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/60a5fa/png?text=Step+2+%E2%80%94+Customs+payment",
+      "url": "https://customs-clearance-pay.com/pay",
+      "form_fields": ["first_name", "last_name", "address", "zip", "card_number", "expiration", "cvv"],
+      "page_text": "Clear your shipment. Enter card details and confirm shipping address. $4.99 settlement covers duties + handling."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/60a5fa/png?text=Step+3+%E2%80%94+Recipient+verification",
+      "url": "https://customs-clearance-pay.com/verify",
+      "form_fields": ["ssn", "dob", "id_upload"],
+      "page_text": "Recipient verification required for customs release. Provide SSN, DOB, and a photo of your ID."
+    }
+  ],
+  "final_url": "https://customs-clearance-pay.com/verify",
+  "harvested_fields": ["name", "address", "zip", "card_number", "card_expiration", "cvv", "ssn", "date_of_birth"],
+  "funnel_terminus": "credentials_form"
+}

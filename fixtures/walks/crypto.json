@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/a78bfa/png?text=Step+1+%E2%80%94+Trading+platform+landing",
+      "url": "https://gs-markets-pro.com/welcome",
+      "form_fields": ["email", "phone"],
+      "page_text": "Premier futures + crypto exchange. Past 30 days: +31.4% strategy returns. Sign up to view live positions."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/a78bfa/png?text=Step+2+%E2%80%94+KYC+%2B+ID+upload",
+      "url": "https://gs-markets-pro.com/kyc",
+      "form_fields": ["first_name", "last_name", "ssn", "dob", "address", "id_upload"],
+      "page_text": "FATCA-required KYC. Upload ID, provide SSN, enter address. Funded within 24h after verification."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/a78bfa/png?text=Step+3+%E2%80%94+Initial+deposit",
+      "url": "https://gs-markets-pro.com/deposit",
+      "form_fields": ["card_number", "expiration", "cvv", "wire_amount", "wallet_address"],
+      "page_text": "Deposit by card (instant), wire transfer, or USDT on-chain. Minimum opening deposit $500."
+    }
+  ],
+  "final_url": "https://gs-markets-pro.com/deposit",
+  "harvested_fields": ["name", "ssn", "date_of_birth", "address", "card_number", "card_expiration", "cvv", "crypto_seed"],
+  "funnel_terminus": "credentials_form"
+}

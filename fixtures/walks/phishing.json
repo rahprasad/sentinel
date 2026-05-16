@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/fbbf24/png?text=Step+1+%E2%80%94+USPS+tracking+page",
+      "url": "https://usps-redelivery.co/track",
+      "form_fields": [],
+      "page_text": "USPS tracking US982431573. Delivery attempt failed: redelivery fee $0.99 required to reschedule within 48 hours."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/fbbf24/png?text=Step+2+%E2%80%94+Pay+redelivery+fee",
+      "url": "https://usps-redelivery.co/pay",
+      "form_fields": ["first_name", "last_name", "address", "zip", "card_number", "expiration", "cvv"],
+      "page_text": "Pay $0.99 redelivery fee. Card processed in USD. Enter card, name, and shipping address to reschedule."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/fbbf24/png?text=Step+3+%E2%80%94+Identity+verification",
+      "url": "https://usps-redelivery.co/verify",
+      "form_fields": ["ssn", "dob"],
+      "page_text": "Final identity verification. Confirm SSN and date of birth to complete redelivery scheduling."
+    }
+  ],
+  "final_url": "https://usps-redelivery.co/verify",
+  "harvested_fields": ["name", "address", "zip", "card_number", "card_expiration", "cvv", "ssn", "date_of_birth"],
+  "funnel_terminus": "credentials_form"
+}

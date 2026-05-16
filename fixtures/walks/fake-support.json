@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/34d399/png?text=Step+1+%E2%80%94+Apple+ID+%22verify%22+page",
+      "url": "https://apple-security-alerts.net/verify",
+      "form_fields": ["apple_id", "password"],
+      "page_text": "Apple ID — verify your identity. Sign in to continue securing your account. Sign-in attempt from Lagos, Nigeria 03:42 AM."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/34d399/png?text=Step+2+%E2%80%94+%22Confirm+billing%22",
+      "url": "https://apple-security-alerts.net/billing",
+      "form_fields": ["card_number", "expiration", "cvv", "billing_zip"],
+      "page_text": "Confirm the payment method on file to complete identity verification. This will not result in a charge."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/34d399/png?text=Step+3+%E2%80%94+%22Verify+SSN%22",
+      "url": "https://apple-security-alerts.net/identity",
+      "form_fields": ["ssn", "dob", "address"],
+      "page_text": "Final identity check. Provide SSN, date of birth, and home address to fully restore account access."
+    }
+  ],
+  "final_url": "https://apple-security-alerts.net/identity",
+  "harvested_fields": ["email", "password", "card_number", "card_expiration", "cvv", "zip", "ssn", "date_of_birth", "address"],
+  "funnel_terminus": "credentials_form"
+}

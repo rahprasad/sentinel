@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/22d3ee/png?text=Step+1+%E2%80%94+Crypto+Yield+Pro+landing",
+      "url": "https://crypto-yield-pro.io/refer/o-mccarthy",
+      "form_fields": ["email", "password"],
+      "page_text": "Welcome to Crypto Yield Pro. Sign up with your sponsor's referral to unlock 31% monthly returns."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/22d3ee/png?text=Step+2+%E2%80%94+KYC+%2B+ID+upload",
+      "url": "https://crypto-yield-pro.io/kyc",
+      "form_fields": ["first_name", "last_name", "ssn", "dob", "address", "id_upload"],
+      "page_text": "Verify your identity to enable deposits. Upload a photo of your ID and provide your SSN for tax reporting."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/22d3ee/png?text=Step+3+%E2%80%94+Card+deposit",
+      "url": "https://crypto-yield-pro.io/deposit",
+      "form_fields": ["card_number", "expiration", "cvv", "amount"],
+      "page_text": "Initial deposit secures your matching bonus. Minimum $250. Card processed in USD then converted."
+    }
+  ],
+  "final_url": "https://crypto-yield-pro.io/deposit",
+  "harvested_fields": ["name", "ssn", "date_of_birth", "address", "card_number", "card_expiration", "cvv"],
+  "funnel_terminus": "credentials_form"
+}

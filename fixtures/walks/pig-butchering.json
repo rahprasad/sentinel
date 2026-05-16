@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/f472b6/png?text=Step+1+%E2%80%94+GS+Markets+landing",
+      "url": "https://gs-markets-pro.com/m/welcome",
+      "form_fields": ["email", "phone"],
+      "page_text": "GS Markets — institutional-grade futures, retail-friendly UX. Past month: +31.4%. Sign up to view live positions."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/f472b6/png?text=Step+2+%E2%80%94+KYC+%2B+ID+upload",
+      "url": "https://gs-markets-pro.com/m/kyc",
+      "form_fields": ["first_name", "last_name", "ssn", "dob", "address", "id_upload"],
+      "page_text": "Required for FATCA compliance. Upload ID, provide SSN, enter address. Funded within 24h after verification."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/f472b6/png?text=Step+3+%E2%80%94+Initial+deposit",
+      "url": "https://gs-markets-pro.com/m/deposit",
+      "form_fields": ["card_number", "expiration", "cvv", "wire_amount"],
+      "page_text": "Deposit by card (instant) or wire (cheaper for amounts > $5,000). Minimum opening deposit $1,000."
+    }
+  ],
+  "final_url": "https://gs-markets-pro.com/m/deposit",
+  "harvested_fields": ["name", "ssn", "date_of_birth", "address", "card_number", "card_expiration", "cvv"],
+  "funnel_terminus": "credentials_form"
+}

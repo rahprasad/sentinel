@@ -8,3 +8,5 @@ pydantic-settings>=2.6.0
 httpx>=0.27.0
 boto3>=1.35.0
 structlog>=24.4.0
+# Actionbook is accessed over MCP (Model Context Protocol).
+mcp>=1.0.0

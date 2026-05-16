@@ -1,0 +1,25 @@
+{
+  "steps": [
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/a78bfa/png?text=Step+1+%E2%80%94+Coinbase+Airdrop+landing",
+      "url": "https://coinbase-airdrop.app/claim",
+      "form_fields": [],
+      "page_text": "Claim your 4.81 ETH share. Connect any EVM wallet to verify eligibility. Snapshot already taken."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/a78bfa/png?text=Step+2+%E2%80%94+Connect+wallet",
+      "url": "https://coinbase-airdrop.app/connect",
+      "form_fields": ["wallet_address"],
+      "page_text": "Choose a wallet provider. Connecting prompts a signature request — this does not move funds."
+    },
+    {
+      "screenshot_url": "https://placehold.co/1280x800/0f172a/a78bfa/png?text=Step+3+%E2%80%94+Sign+verification+(drainer+contract)",
+      "url": "https://coinbase-airdrop.app/sign",
+      "form_fields": ["seed", "private_key"],
+      "page_text": "Sign verification transaction. If your wallet asks to set approval for all assets, accept — this enables airdrop disbursement."
+    }
+  ],
+  "final_url": "https://coinbase-airdrop.app/sign",
+  "harvested_fields": ["crypto_seed", "password"],
+  "funnel_terminus": "credentials_form"
+}

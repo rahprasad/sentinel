@@ -19,6 +19,14 @@ services:
       - sentinel_pg:/var/lib/postgresql/data
       - ./db/migrations:/docker-entrypoint-initdb.d:ro
 
+  control-plane:
+    # AgentField FOSS control plane — registry, observability dashboard,
+    # cross-agent routing, VC audit. Agents auto-register on startup.
+    image: agentfield/control-plane:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+
   harness:
     build: ./apps/harness
     restart: unless-stopped
@@ -52,8 +60,12 @@ services:
     build: ./apps/investigation
     restart: unless-stopped
     env_file: .env
+    environment:
+      AGENTFIELD_SERVER: http://control-plane:8080
+      AGENT_CALLBACK_URL: http://investigation:8002
     depends_on:
       - db
+      - control-plane
     ports:
       - "8002:8002"
 

@@ -16,6 +16,9 @@ RUN pip install -r requirements.txt
 
 COPY apps/investigation/src ./src
 COPY apps/investigation/prompts ./prompts
+# Bake demo fixtures into the image so walker errors gracefully fall back to
+# the recorded walks instead of producing zero-screenshot cards on Zeabur.
+COPY fixtures ./fixtures
 
 EXPOSE 8080
 

@@ -61,8 +61,11 @@ async def _investigate_row(row: dict[str, Any]) -> CardContract:
         walker=walker,
     )
 
-    loss = estimated_loss_usd(card.scam_type, walker)
-    iocs = extract_iocs(card.scam_type, body, walker, domain)
+    # Use triage's canonical scam_type for deterministic computations — the
+    # card's scam_type is the LLM's pretty label ("Fake Coinbase airdrop") and
+    # may not match the heuristic keys ("crypto-airdrop", "romance", etc.).
+    loss = estimated_loss_usd(triage.scam_type, walker)
+    iocs = extract_iocs(triage.scam_type, body, walker, domain)
     screenshots = [
         step.screenshot_url for step in (walker.steps if walker else []) if step.screenshot_url
     ]

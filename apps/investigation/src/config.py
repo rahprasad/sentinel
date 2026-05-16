@@ -43,9 +43,12 @@ class Settings(BaseSettings):
     # routing intent lives in code, not in shell state.
     tokenrouter_api_key: str = ""
     tokenrouter_base_url: str = "https://api.tokenrouter.com/v1"
-    synthesizer_model: str = "openai/glm-4.6"
+    # LiteLLM format: "openai/<id>" strips the prefix and forwards <id> as
+    # the model string to the configured api_base. TokenRouter exposes GLM-4.6
+    # as "z-ai/glm-4.6", so the full LiteLLM model is "openai/z-ai/glm-4.6".
+    synthesizer_model: str = "openai/z-ai/glm-4.6"
     synthesizer_temperature: float = 0.2
-    synthesizer_timeout_seconds: int = 30
+    synthesizer_timeout_seconds: int = 120
 
     # ── Bright Data ─────────────────────────────────────────────────────────
     # Used for the sandbox walker's residential-proxy upgrade, not WHOIS.

@@ -1,0 +1,4 @@
+{
+  "dockerfile": "apps/sandbox/Dockerfile",
+  "build_context": "apps/sandbox"
+}

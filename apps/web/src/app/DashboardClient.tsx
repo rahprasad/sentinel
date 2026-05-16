@@ -6,6 +6,7 @@ import HeroStats from "@/components/dashboard/HeroStats";
 import IncidentFeed from "@/components/dashboard/IncidentFeed";
 import TrendingStrip from "@/components/dashboard/TrendingStrip";
 import ScreenshotDropZone from "@/components/dashboard/ScreenshotDropZone";
+import AgentActivityPanel from "@/components/dashboard/AgentActivityPanel";
 import { IncidentDrawer } from "@/components/drawer";
 
 export default function DashboardClient() {
@@ -33,6 +34,8 @@ export default function DashboardClient() {
             <TrendingStrip />
           </div>
         </div>
+
+        <AgentActivityPanel />
       </main>
 
       <IncidentDrawer

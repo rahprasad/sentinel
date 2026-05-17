@@ -46,8 +46,9 @@ async def emit(
     }
     try:
         await _get_client().post(url, json=payload)
-    except (httpx.HTTPError, asyncio.TimeoutError) as exc:
-        log.debug("activity.emit_failed", agent=agent, event=event, error=str(exc))
+    except Exception as exc:
+        # Observability must never block work; swallow every error.
+        log.debug("activity.emit_failed", agent=agent, ev=event, error=str(exc))
 
 
 @asynccontextmanager
